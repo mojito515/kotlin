@@ -918,7 +918,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/plugins-tests/tests",  "plugins/android-extensions/android-extensions-compiler/testData") {
+    testGroup("plugins/android-extensions/android-extensions-compiler/test",  "plugins/android-extensions/android-extensions-compiler/testData") {
         testClass<AbstractAndroidSyntheticPropertyDescriptorTest> {
             model("descriptors", recursive = false, extension = null)
         }
@@ -937,7 +937,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/plugins-tests/tests", "plugins/annotation-collector/testData") {
+    testGroup("plugins/annotation-collector/test", "plugins/annotation-collector/testData") {
         testClass<AbstractAnnotationProcessorBoxTest> {
             model("collectToFile", recursive = false, extension = null)
         }
@@ -953,13 +953,13 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/plugins-tests/tests", "plugins/allopen/allopen-cli/testData") {
+    testGroup("plugins/allopen/allopen-cli/test", "plugins/allopen/allopen-cli/testData") {
         testClass<AbstractBytecodeListingTestForAllOpen> {
             model("bytecodeListing", extension = "kt")
         }
     }
 
-    testGroup("plugins/plugins-tests/tests", "plugins/noarg/noarg-cli/testData") {
+    testGroup("plugins/noarg/noarg-cli/test", "plugins/noarg/noarg-cli/testData") {
         testClass<AbstractBytecodeListingTestForNoArg> {
             model("bytecodeListing", extension = "kt")
         }
@@ -969,7 +969,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/plugins-tests/tests", "plugins/sam-with-receiver/sam-with-receiver-cli/testData") {
+    testGroup("plugins/sam-with-receiver/sam-with-receiver-cli/test", "plugins/sam-with-receiver/sam-with-receiver-cli/testData") {
         testClass<AbstractSamWithReceiverTest> {
             model("diagnostics")
         }
@@ -1051,7 +1051,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/plugins-tests/tests", "plugins/android-extensions/android-extensions-jps/testData") {
+    testGroup("plugins/android-extensions/android-extensions-jps/test", "plugins/android-extensions/android-extensions-jps/testData") {
         testClass<AbstractAndroidJpsTestCase> {
             model("android", recursive = false, extension = null)
         }
