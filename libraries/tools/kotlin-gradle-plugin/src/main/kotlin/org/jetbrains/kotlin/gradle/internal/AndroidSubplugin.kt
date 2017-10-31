@@ -129,7 +129,7 @@ class AndroidSubplugin : KotlinGradleSubplugin<KotlinCompile> {
             addVariant(sourceSet)
         }
 
-        return pluginOptions
+        return wrapPluginOptions(pluginOptions, "configuration")
     }
 
     private fun getLayoutDirectories(resDirectories: Collection<File>): List<File> {
@@ -199,7 +199,7 @@ class AndroidSubplugin : KotlinGradleSubplugin<KotlinCompile> {
             addSourceSetAsVariant(variantName)
         }
 
-        return pluginOptions
+        return wrapPluginOptions(pluginOptions, "configuration")
     }
 
     // Android25ProjectHandler.KaptVariant actually contains BaseVariant, not BaseVariantData
