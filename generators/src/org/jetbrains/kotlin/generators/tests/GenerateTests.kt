@@ -1047,9 +1047,11 @@ fun main(args: Array<String>) {
         }
     }
 
+    /*
     testGroup("plugins/plugins-tests/tests", "plugins/android-extensions/android-extensions-jps/testData") {
         testClass<AbstractAndroidJpsTestCase> {
             model("android", recursive = false, extension = null)
         }
     }
+    */
 }
