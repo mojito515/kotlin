@@ -731,7 +731,7 @@ internal open class PrimitiveTypeParcelSerializer private constructor(final over
             val falseLabel = Label()
             val conditionIsOver = Label()
 
-            v.ifle(falseLabel)
+            v.ifeq(falseLabel)
             v.iconst(1)
             v.goTo(conditionIsOver)
 
