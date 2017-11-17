@@ -19,9 +19,10 @@ package org.jetbrains.kotlin.android.parcel.serializers
 import kotlinx.android.parcel.Parceler
 import org.jetbrains.kotlin.android.parcel.serializers.BoxedPrimitiveTypeParcelSerializer.Companion.BOXED_VALUE_METHOD_NAMES
 import org.jetbrains.kotlin.codegen.AsmUtil
+import org.jetbrains.kotlin.codegen.FrameMap
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
+import org.jetbrains.kotlin.codegen.useTmpVar
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.Type
@@ -187,8 +188,8 @@ internal fun InstructionAdapter.castIfNeeded(targetType: Type) {
 internal class ListSetParcelSerializer(
         asmType: Type,
         elementSerializer: ParcelSerializer,
-        variableFactory: LocalVariableFactory
-) : AbstractCollectionParcelSerializer(asmType, elementSerializer, variableFactory) {
+        frameMap: FrameMap
+) : AbstractCollectionParcelSerializer(asmType, elementSerializer, frameMap) {
     override fun getSize(v: InstructionAdapter) {
         v.invokeinterface("java/util/Collection", "size", "()I")
     }
@@ -218,8 +219,8 @@ internal class MapParcelSerializer(
         asmType: Type,
         private val keySerializer: ParcelSerializer,
         elementSerializer: ParcelSerializer,
-        variableFactory: LocalVariableFactory
-) : AbstractCollectionParcelSerializer(asmType, elementSerializer, variableFactory) {
+        frameMap: FrameMap
+) : AbstractCollectionParcelSerializer(asmType, elementSerializer, frameMap) {
     override fun getSize(v: InstructionAdapter) {
         v.invokeinterface("java/util/Map", "size", "()I")
     }
@@ -263,7 +264,7 @@ internal class MapParcelSerializer(
 abstract internal class AbstractCollectionParcelSerializer(
         final override val asmType: Type,
         protected val elementSerializer: ParcelSerializer,
-        private val variableFactory: LocalVariableFactory
+        private val frameMap: FrameMap
 ) : ParcelSerializer {
     protected val collectionType: Type = Type.getObjectType(when (asmType.internalName) {
         "java/util/List" -> "java/util/ArrayList"
@@ -334,7 +335,7 @@ abstract internal class AbstractCollectionParcelSerializer(
     }
 
     override fun readValue(v: InstructionAdapter) {
-        variableFactory.withLocalVariable(Type.INT_TYPE) { sizeVarIndex ->
+        frameMap.useTmpVar(Type.INT_TYPE) { sizeVarIndex ->
             v.invokevirtual(PARCEL_TYPE.internalName, "readInt", "()I", false) // -> size
             v.store(sizeVarIndex, Type.INT_TYPE)
 
@@ -376,7 +377,7 @@ abstract internal class AbstractCollectionParcelSerializer(
 internal class SparseArrayParcelSerializer(
         override val asmType: Type,
         private val valueSerializer: ParcelSerializer,
-        private val variableFactory: LocalVariableFactory
+        private val frameMap: FrameMap
 ) : ParcelSerializer {
     private val valueType = (valueSerializer as? PrimitiveTypeParcelSerializer)?.asmType ?: Type.getObjectType("java/lang/Object")
 
@@ -427,7 +428,7 @@ internal class SparseArrayParcelSerializer(
     }
 
     override fun readValue(v: InstructionAdapter) {
-        variableFactory.withLocalVariable(Type.INT_TYPE) { sizeVarIndex ->
+        frameMap.useTmpVar(Type.INT_TYPE) { sizeVarIndex ->
             v.invokevirtual(PARCEL_TYPE.internalName, "readInt", "()I", false) // -> size
             v.store(sizeVarIndex, Type.INT_TYPE) // -> (empty)
 

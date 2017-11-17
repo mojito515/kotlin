@@ -21,8 +21,7 @@ import org.jetbrains.kotlin.android.parcel.ParcelableSyntheticComponent.Componen
 import org.jetbrains.kotlin.android.parcel.ParcelableResolveExtension.Companion.createMethod
 import org.jetbrains.kotlin.android.parcel.serializers.*
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.codegen.ExpressionCodegen
-import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
+import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.name.Name
@@ -31,9 +30,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.codegen.FunctionGenerationStrategy.CodegenBased
-import org.jetbrains.kotlin.codegen.OwnerKind
 import org.jetbrains.kotlin.codegen.context.ClassContext
-import org.jetbrains.kotlin.codegen.writeSyntheticClassMetadata
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
@@ -112,8 +109,13 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
                                 "(${containerAsmType.descriptor}${PARCEL_TYPE.descriptor}I)V", false)
             }
             else {
-                val variableFactory = LocalVariableFactoryImpl(this.v, 3)
-                val globalContext = ParcelSerializer.ParcelSerializerContext(codegen.typeMapper, containerAsmType, emptyList(), variableFactory)
+                val frameMap = FrameMap().apply {
+                    enterTemp(containerAsmType)
+                    enterTemp(PARCEL_TYPE)
+                    enterTemp(Type.INT_TYPE)
+                }
+
+                val globalContext = ParcelSerializer.ParcelSerializerContext(codegen.typeMapper, containerAsmType, emptyList(), frameMap)
 
                 for ((fieldName, type, parcelers) in properties) {
                     val asmType = codegen.typeMapper.mapType(type)
@@ -184,6 +186,7 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
             properties: List<PropertyToSerialize>
     ) {
         val containerAsmType = codegen.typeMapper.mapType(parcelableClass)
+        val creatorAsmType = codegen.typeMapper.mapType(creatorClass)
 
         createMethod(creatorClass, CREATE_FROM_PARCEL, parcelableClass.builtIns.anyType, "in" to parcelClassType).write(codegen) {
             if (parcelerObject != null) {
@@ -198,8 +201,12 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
                 v.dup()
 
                 val asmConstructorParameters = StringBuilder()
-                val variableFactory = LocalVariableFactoryImpl(this.v, 2)
-                val globalContext = ParcelSerializer.ParcelSerializerContext(codegen.typeMapper, containerAsmType, emptyList(), variableFactory)
+                val frameMap = FrameMap().apply {
+                    enterTemp(creatorAsmType)
+                    enterTemp(PARCEL_TYPE)
+                }
+
+                val globalContext = ParcelSerializer.ParcelSerializerContext(codegen.typeMapper, containerAsmType, emptyList(), frameMap)
 
                 for ((_, type, parcelers) in properties) {
                     val asmType = codegen.typeMapper.mapType(type)
