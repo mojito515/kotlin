@@ -6,12 +6,12 @@ class Outer<T> {
     inner class Inner
     fun foo(x: Outer<String>.Inner, y: <!WRONG_NUMBER_OF_TYPE_ARGUMENTS!>Outer<!>.Inner, z: Inner) {
         var inner = Inner()
-        x.checkType { <!TYPE_MISMATCH!>_<!><Inner>() }
+        x.checkType { <!OI;TYPE_MISMATCH!><!NI;UNRESOLVED_REFERENCE_WRONG_RECEIVER!><!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET!>_<!><!><!><Inner>() }
         x.checkType { _<Outer<String>.Inner>() }
         z.checkType { _<Inner>() }
         z.checkType { _<Outer<T>.Inner>() }
 
-        inner = <!TYPE_MISMATCH!>x<!>
+        inner = <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>x<!><!>
     }
 
     class Nested

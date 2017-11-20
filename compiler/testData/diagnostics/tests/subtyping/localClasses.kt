@@ -15,5 +15,5 @@ private fun foo() = run {
 
 fun test() {
     var x = foo(1)
-    x = <!TYPE_MISMATCH!>foo()<!>
+    x = <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>foo()<!><!>
 }

@@ -15,7 +15,7 @@ fun foo() : Int {
 
 fun bar() : Int =
     try {
-        <!TYPE_MISMATCH!>doSmth()<!>
+        <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>doSmth()<!><!>
     }
     catch (e: Exception) {
         <!TYPE_MISMATCH!>""<!>

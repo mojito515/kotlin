@@ -7,5 +7,5 @@ class TestClass(var prop: Int)
 open class OtherClass
 fun OtherClass.test(prop: KProperty1<TestClass, Int>): Unit = throw Exception()
 class OtherClass2: OtherClass() {
-    val result = test(TestClass::<!UNRESOLVED_REFERENCE!>result<!>)
+    val result = test(TestClass::<!OI;UNRESOLVED_REFERENCE!><!NI;DEBUG_INFO_MISSING_UNRESOLVED!>result<!><!>)
 }

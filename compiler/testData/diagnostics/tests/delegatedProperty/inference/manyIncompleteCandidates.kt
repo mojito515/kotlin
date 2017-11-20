@@ -5,7 +5,7 @@ package test
 import first.*
 import second.*
 
-val a12 by <!DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE!>A()<!>
+val a12 by <!OI;DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE!><!NI;DELEGATE_SPECIAL_FUNCTION_AMBIGUITY!>A()<!><!>
 
 // FILE: first.kt
 package first

@@ -8,5 +8,5 @@ fun test(a: Any): String {
         is A -> q!!
     }
     // When is not exhaustive
-    return <!TYPE_MISMATCH!>q<!>
+    return <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>q<!><!>
 }

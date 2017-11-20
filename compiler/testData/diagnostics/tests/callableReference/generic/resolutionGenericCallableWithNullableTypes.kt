@@ -17,7 +17,7 @@ fun test1() {
     baz<String>(::foo).checkType { _<String?>() }
     baz<Boolean>(::foo).checkType { _<Boolean?>() }
 
-    val b1: Int = <!TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!>baz(::foo)<!>
-    val b2: String = <!TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!>baz(::foo)<!>
-    val b3: Boolean = <!TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!>baz(::foo)<!>
+    val b1: Int = <!OI;TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!><!NI;TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>baz(::<!NI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>)<!><!><!>
+    val b2: String = <!OI;TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!><!NI;TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>baz(::<!NI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>)<!><!><!>
+    val b3: Boolean = <!OI;TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!><!NI;TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>baz(::<!NI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>)<!><!><!>
 }

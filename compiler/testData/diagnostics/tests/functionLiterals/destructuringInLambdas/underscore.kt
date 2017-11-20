@@ -47,17 +47,17 @@ fun bar() {
         _ checkType { _<String>() }
     }
 
-    foo { (<!REDECLARATION, UNUSED_DESTRUCTURED_PARAMETER_ENTRY!>`_`<!>, <!REDECLARATION!>`_`<!>) ->
+    foo { (<!REDECLARATION!><!UNUSED_DESTRUCTURED_PARAMETER_ENTRY!>`_`<!><!>, <!REDECLARATION!>`_`<!>) ->
         _ checkType { _<String>() }
     }
 
-    foo { (<!COMPONENT_FUNCTION_RETURN_TYPE_MISMATCH!>_: String<!>, b) ->
+    foo { (<!OI;COMPONENT_FUNCTION_RETURN_TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>_: String<!><!>, b) ->
         <!UNRESOLVED_REFERENCE!>_<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>hashCode<!>()
         b checkType { _<String>() }
     }
 
-    foo { <!EXPECTED_PARAMETER_TYPE_MISMATCH!>(_, b): B<!> ->
+    foo <!NI;TYPE_MISMATCH!>{ <!OI;EXPECTED_PARAMETER_TYPE_MISMATCH!>(_, b): B<!> ->
         <!UNRESOLVED_REFERENCE!>_<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>hashCode<!>()
         b checkType { _<Short>() }
-    }
+    }<!>
 }

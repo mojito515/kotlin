@@ -17,7 +17,7 @@ fun test(a: A, b: B) {
 
         b.(foo)()
 
-        (b.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>foo<!>)()
+        (b.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!><!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET!>foo<!><!>)()
 
         foo(b)
         (foo)(b)
@@ -25,7 +25,7 @@ fun test(a: A, b: B) {
 
     with(b) {
         a.foo(<!NO_VALUE_FOR_PARAMETER!>)<!>
-        a.<!FUNCTION_EXPECTED!>(<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>foo<!>)<!>()
+        a.<!FUNCTION_EXPECTED!>(<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!><!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET!>foo<!><!>)<!>()
 
         (a.foo)()
 

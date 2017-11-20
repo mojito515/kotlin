@@ -5,5 +5,5 @@ fun <T> g(<!UNUSED_PARAMETER!>i<!>: Int, <!UNUSED_PARAMETER!>a<!>: Any): List<T>
 fun <T> g(<!UNUSED_PARAMETER!>a<!>: Any, <!UNUSED_PARAMETER!>i<!>: Int): Collection<T> {throw Exception()}
 
 fun <T> test() {
-    val <!UNUSED_VARIABLE!>c<!>: List<T> = <!CANNOT_COMPLETE_RESOLVE!>g<!>(1, 1)
+    val <!UNUSED_VARIABLE!>c<!>: List<T> = <!OI;CANNOT_COMPLETE_RESOLVE!><!NI;OVERLOAD_RESOLUTION_AMBIGUITY!>g<!><!>(1, 1)
 }

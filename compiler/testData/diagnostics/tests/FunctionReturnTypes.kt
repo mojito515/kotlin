@@ -8,10 +8,10 @@ fun unitEmpty() : Unit {}
 fun unitEmptyReturn() : Unit {return}
 fun unitIntReturn() : Unit {return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1<!>}
 fun unitUnitReturn() : Unit {return Unit}
-fun test1() : Any = {<!RETURN_NOT_ALLOWED, RETURN_TYPE_MISMATCH!>return<!>}
+fun test1() : Any = {<!RETURN_NOT_ALLOWED!><!RETURN_TYPE_MISMATCH!>return<!><!>}
 fun test2() : Any = a@ {return@a 1}
 fun test3() : Any { <!RETURN_TYPE_MISMATCH!>return<!> }
-fun test4(): ()-> Unit = { <!RETURN_NOT_ALLOWED, RETURN_TYPE_MISMATCH!>return@test4<!> }
+fun test4(): ()-> Unit = { <!RETURN_NOT_ALLOWED!><!RETURN_TYPE_MISMATCH!>return@test4<!><!> }
 fun test5(): Any = l@{ return@l }
 fun test6(): Any = {<!RETURN_NOT_ALLOWED!>return<!> 1}
 
@@ -45,7 +45,7 @@ fun intFunctionLiteral(): Int = <!TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN!>{ 1
 fun blockReturnUnitMismatch() : Int {<!RETURN_TYPE_MISMATCH!>return<!>}
 fun blockReturnValueTypeMismatch() : Int {return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>3.4<!>}
 fun blockReturnValueTypeMatch() : Int {return 1}
-fun blockReturnValueTypeMismatchUnit() : Int {return <!TYPE_MISMATCH!>Unit<!>}
+fun blockReturnValueTypeMismatchUnit() : Int {return <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>Unit<!><!>}
 
 fun blockAndAndMismatch() : Int {
     <!UNUSED_EXPRESSION!>true && false<!>
@@ -67,7 +67,7 @@ fun blockAndAndMismatch5() : Int {
     (return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>true<!>) || (return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>false<!>)
 }
 fun blockReturnValueTypeMatch1() : Int {
-    return if (1 > 2) <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1.0<!> else <!CONSTANT_EXPECTED_TYPE_MISMATCH!>2.0<!>
+    return if (1 > 2) <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1.0<!> else <!OI;CONSTANT_EXPECTED_TYPE_MISMATCH!>2.0<!>
 }
 fun blockReturnValueTypeMatch2() : Int {
     return <!TYPE_MISMATCH!><!INVALID_IF_AS_EXPRESSION!>if<!> (1 > 2) 1<!>
@@ -134,7 +134,7 @@ fun blockNoReturnIfUnitInOneBranch(): Int {
         }
     }
     <!NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY!>}<!>
-fun nonBlockReturnIfEmptyIf(): Int = if (1 < 2) <!TYPE_MISMATCH!>{}<!> else <!TYPE_MISMATCH!>{}<!>
+fun nonBlockReturnIfEmptyIf(): Int = if (1 < 2) <!TYPE_MISMATCH!>{}<!> else <!OI;TYPE_MISMATCH!>{}<!>
 fun nonBlockNoReturnIfUnitInOneBranch(): Int = if (1 < 2) <!TYPE_MISMATCH!>{}<!> else 2
 
 val a = <!RETURN_NOT_ALLOWED!>return<!> 1
@@ -146,14 +146,14 @@ fun illegalConstantBlock(): String {
     return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1<!>
 }
 fun illegalIfBody(): Int =
-        if (1 < 2) <!CONSTANT_EXPECTED_TYPE_MISMATCH!>'a'<!> else { <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1.0<!> }
+        if (1 < 2) <!CONSTANT_EXPECTED_TYPE_MISMATCH!>'a'<!> else <!NI;TYPE_MISMATCH!>{ <!OI;CONSTANT_EXPECTED_TYPE_MISMATCH!>1.0<!> }<!>
 fun illegalIfBlock(): Boolean {
     if (1 < 2)
         return false
     else { return <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1<!> }
 }
 fun illegalReturnIf(): Char {
-    return if (1 < 2) 'a' else { <!CONSTANT_EXPECTED_TYPE_MISMATCH!>1<!> }
+    return if (1 < 2) 'a' else <!NI;TYPE_MISMATCH!>{ <!OI;CONSTANT_EXPECTED_TYPE_MISMATCH!>1<!> }<!>
 }
 
 fun returnNothing(): Nothing {
@@ -194,7 +194,7 @@ fun testFunctionLiterals() {
     val <!UNUSED_VARIABLE!>endsWithObjectDeclaration<!> : () -> Int = {
         var <!ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE!>x<!> = 1
         <!UNUSED_VALUE!>x =<!> 333
-        <!LOCAL_OBJECT_NOT_ALLOWED, EXPECTED_TYPE_MISMATCH!>object A<!> {}
+        <!LOCAL_OBJECT_NOT_ALLOWED!><!EXPECTED_TYPE_MISMATCH!>object A<!><!> {}
     }
 
     val <!UNUSED_VARIABLE!>expectedUnitReturnType1<!>: () -> Unit = {

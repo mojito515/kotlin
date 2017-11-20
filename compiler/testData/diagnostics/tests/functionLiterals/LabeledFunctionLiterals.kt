@@ -10,7 +10,7 @@ fun <T> foo(<!UNUSED_PARAMETER!>a<!>: A, f: () -> T): T = f()
 fun <T> foo(<!UNUSED_PARAMETER!>b<!>: B, f: () -> T): T = f()
 
 fun test(c: C) {
-    <!CANNOT_COMPLETE_RESOLVE!>foo<!>(c) f@ {
+    <!OI;CANNOT_COMPLETE_RESOLVE!><!NI;OVERLOAD_RESOLUTION_AMBIGUITY!>foo<!><!>(c) f@ {
         c<!UNNECESSARY_NOT_NULL_ASSERTION!>!!<!>
     }
 }

@@ -34,22 +34,22 @@ fun test() {
     platformJ++
 
     1 + platformNN
-    1 + <!TYPE_MISMATCH!>platformN<!>
+    1 <!NI;NONE_APPLICABLE!>+<!> <!OI;TYPE_MISMATCH!>platformN<!>
     1 + platformJ
 
     platformNN + 1
-    platformN <!UNSAFE_OPERATOR_CALL!>+<!> 1
+    platformN <!OI;UNSAFE_OPERATOR_CALL!><!NI;UNRESOLVED_REFERENCE_WRONG_RECEIVER!><!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET!>+<!><!><!> 1
     platformJ + 1
 
     1 <!INFIX_MODIFIER_REQUIRED!>plus<!> platformNN
-    1 <!INFIX_MODIFIER_REQUIRED!>plus<!> <!TYPE_MISMATCH!>platformN<!>
+    1 <!OI;INFIX_MODIFIER_REQUIRED!><!NI;NONE_APPLICABLE!>plus<!><!> <!OI;TYPE_MISMATCH!>platformN<!>
     1 <!INFIX_MODIFIER_REQUIRED!>plus<!> platformJ
 
     platformNN <!INFIX_MODIFIER_REQUIRED!>plus<!> 1
-    platformN <!UNSAFE_INFIX_CALL, INFIX_MODIFIER_REQUIRED!>plus<!> 1
+    platformN <!UNSAFE_INFIX_CALL!><!INFIX_MODIFIER_REQUIRED!>plus<!><!> 1
     platformJ <!INFIX_MODIFIER_REQUIRED!>plus<!> 1
 
     platformNN += 1
-    platformN <!UNSAFE_OPERATOR_CALL!>+=<!> 1
+    platformN <!OI;UNSAFE_OPERATOR_CALL!><!NI;UNRESOLVED_REFERENCE_WRONG_RECEIVER!><!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET!>+=<!><!><!> 1
     platformJ += 1
 }

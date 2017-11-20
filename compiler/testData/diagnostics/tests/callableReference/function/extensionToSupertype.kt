@@ -15,5 +15,5 @@ fun take(f: () -> Unit) {}
 fun test() {
     B::foo checkType { _<KFunction1<B, Unit>>() }
 
-    <!NONE_APPLICABLE!>take<!>(B::foo)
+    <!OI;NONE_APPLICABLE!><!NI;OVERLOAD_RESOLUTION_AMBIGUITY!>take<!><!>(B::<!NI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>)
 }

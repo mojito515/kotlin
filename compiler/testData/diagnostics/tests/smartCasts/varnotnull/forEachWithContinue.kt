@@ -14,5 +14,5 @@ fun list(start: SomeObject): SomeObject {
         <!DEBUG_INFO_SMARTCAST!>e<!>.doSomething()
         e = <!DEBUG_INFO_SMARTCAST!>e<!>.next()
     }
-    return <!TYPE_MISMATCH!>e<!>
+    return <!TYPE_MISMATCH!><!NI;TYPE_MISMATCH!>e<!><!>
 }

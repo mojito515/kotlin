@@ -18,5 +18,5 @@ class OtherContainer<K>(val k: K) {
 fun test2() {
     val other: OtherContainer<String>? = null
     // Error
-    for (s in <!ITERATOR_ON_NULLABLE!>other<!>) {}
+    for (s in <!OI;ITERATOR_ON_NULLABLE!><!NI;ITERATOR_MISSING!>other<!><!>) {}
 }
