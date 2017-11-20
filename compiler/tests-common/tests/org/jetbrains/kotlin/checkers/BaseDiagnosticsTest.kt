@@ -234,6 +234,17 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
             val diagnosticToExpectedDiagnostic = CheckerTestUtil.diagnosticsDiff(diagnosedRanges, diagnostics, object : CheckerTestUtil.DiagnosticDiffCallbacks {
                 override fun missingDiagnostic(diagnostic: CheckerTestUtil.TextDiagnostic, expectedStart: Int, expectedEnd: Int) {
+                    val currentDiagnosticsForNI = diagnostic.isWithNewInference
+                    if (shouldUseDiagnosticsForNI() != currentDiagnosticsForNI) {
+                        val inference = if (shouldUseDiagnosticsForNI())
+                            CheckerTestUtil.TextDiagnostic.InferenceCompatibility.OLD
+                        else
+                            CheckerTestUtil.TextDiagnostic.InferenceCompatibility.NEW
+                        diagnostic.setInferenceCompatibility(inference)
+                        uncheckedDiagnostics.add(PositionalTextDiagnostic(diagnostic, expectedStart, expectedEnd))
+                        return
+                    }
+
                     val message = "Missing " + diagnostic.description + DiagnosticUtils.atLocation(ktFile, TextRange(expectedStart, expectedEnd))
                     System.err.println(message)
                     ok[0] = false
@@ -253,6 +264,17 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
                 }
 
                 override fun unexpectedDiagnostic(diagnostic: CheckerTestUtil.TextDiagnostic, actualStart: Int, actualEnd: Int) {
+                    val currentDiagnosticsForNI = diagnostic.isWithNewInference
+                    if (shouldUseDiagnosticsForNI() != currentDiagnosticsForNI) {
+                        val inference = if (shouldUseDiagnosticsForNI())
+                            CheckerTestUtil.TextDiagnostic.InferenceCompatibility.OLD
+                        else
+                            CheckerTestUtil.TextDiagnostic.InferenceCompatibility.NEW
+                        diagnostic.setInferenceCompatibility(inference)
+                        uncheckedDiagnostics.add(PositionalTextDiagnostic(diagnostic, actualStart, actualEnd))
+                        return
+                    }
+
                     val message = "Unexpected ${diagnostic.description}${DiagnosticUtils.atLocation(ktFile, TextRange(actualStart, actualEnd))}"
                     System.err.println(message)
                     ok[0] = false

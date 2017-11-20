@@ -30,6 +30,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.Stack;
 import kotlin.Pair;
 import kotlin.TuplesKt;
+import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
@@ -88,6 +89,7 @@ public class CheckerTestUtil {
     private static final Pattern INDIVIDUAL_PARAMETER_PATTERN = Pattern.compile(DIAGNOSTIC_PARAMETER);
 
     private static final String NEW_INFERENCE_PREFIX = "NI";
+    private static final String OLD_INFERENCE_PREFIX = "OI";
 
     @NotNull
     public static List<ActualDiagnostic> getDiagnosticsIncludingSyntaxErrors(
@@ -230,6 +232,21 @@ public class CheckerTestUtil {
 
         assertSameFile(actual);
 
+        if (callbacks.isWithNewInferenceDirective()) {
+            List<DiagnosedRange> flatDiagnostics = new ArrayList<>();
+            for (DiagnosedRange diagnosedRange : expected) {
+                for (TextDiagnostic diagnostic : diagnosedRange.diagnostics) {
+                    DiagnosedRange range = new DiagnosedRange(diagnosedRange.start);
+                    range.setEnd(diagnosedRange.end);
+                    range.addDiagnostic(diagnostic);
+
+                    flatDiagnostics.add(range);
+                }
+            }
+
+            expected = flatDiagnostics;
+        }
+
         Iterator<DiagnosedRange> expectedDiagnostics = expected.iterator();
         List<ActualDiagnosticDescriptor> sortedDiagnosticDescriptors =
                 getActualSortedDiagnosticDescriptors(actual, !callbacks.isWithNewInferenceDirective());
@@ -239,8 +256,9 @@ public class CheckerTestUtil {
         ActualDiagnosticDescriptor currentActual = safeAdvance(actualDiagnostics);
         while (currentExpected != null || currentActual != null) {
             if (currentExpected != null) {
-                boolean currentDiagnosticsForNI = CollectionsKt.any(currentExpected.diagnostics, diagnostic -> diagnostic.withNewInference);
-                if (callbacks.shouldUseDiagnosticsForNI() != currentDiagnosticsForNI) {
+                boolean currentDiagnosticsForNI = CollectionsKt.any(currentExpected.diagnostics, TextDiagnostic::isWithNewInference);
+                boolean forAll = CollectionsKt.any(currentExpected.diagnostics, TextDiagnostic::forAllInference);
+                if (!forAll && callbacks.shouldUseDiagnosticsForNI() != currentDiagnosticsForNI) {
                     uncheckedDiagnostics(callbacks, currentExpected);
                     currentExpected = safeAdvance(expectedDiagnostics);
                     continue;
@@ -504,8 +522,8 @@ public class CheckerTestUtil {
                     }
                 }
                 else {
-                    if (diagnostic.withNewInference) {
-                        result.append(NEW_INFERENCE_PREFIX);
+                    if (diagnostic.inferenceCompatibility.abbreviation != null) {
+                        result.append(diagnostic.inferenceCompatibility.abbreviation);
                         result.append(";");
                     }
                     if (diagnostic.platform != null) {
@@ -655,9 +673,7 @@ public class CheckerTestUtil {
         diagnosticDescriptors.sort((d1, d2) -> {
             if (d1.start != d2.start) return d1.start - d2.start;
             if (d1.end != d2.end) return d2.end - d1.end;
-            if (d1.isWithNewInference() && !d2.isWithNewInference()) return -1;
-            if (!d1.isWithNewInference() && d2.isWithNewInference()) return 1;
-            return 0;
+            return d1.getInferenceCompatibility().compareTo(d2.getInferenceCompatibility());
         });
         return diagnosticDescriptors;
     }
@@ -718,6 +734,8 @@ public class CheckerTestUtil {
         }
 
         public abstract boolean isWithNewInference();
+
+        public abstract TextDiagnostic.InferenceCompatibility getInferenceCompatibility();
     }
 
     private static class ActualDiagnosticDescriptor extends AbstractDiagnosticDescriptor {
@@ -744,6 +762,12 @@ public class CheckerTestUtil {
         public boolean isWithNewInference() {
             return false;
         }
+
+        @Override
+        public TextDiagnostic.InferenceCompatibility getInferenceCompatibility() {
+            ActualDiagnostic diagnostic = CollectionsKt.firstOrNull(diagnostics);
+            return diagnostic != null ? diagnostic.inferenceCompatibility : TextDiagnostic.InferenceCompatibility.ALL;
+        }
     }
 
     private static class TextDiagnosticDescriptor extends AbstractDiagnosticDescriptor {
@@ -760,19 +784,26 @@ public class CheckerTestUtil {
 
         @Override
         public boolean isWithNewInference() {
-            return positionalTextDiagnostic.getDiagnostic().withNewInference;
+            return positionalTextDiagnostic.getDiagnostic().isWithNewInference();
+        }
+
+        @Override
+        public TextDiagnostic.InferenceCompatibility getInferenceCompatibility() {
+            return positionalTextDiagnostic.getDiagnostic().inferenceCompatibility;
         }
     }
 
     public static class ActualDiagnostic {
         public final Diagnostic diagnostic;
         public final String platform;
-        public final boolean withNewInference;
+        public final TextDiagnostic.InferenceCompatibility inferenceCompatibility;
 
         ActualDiagnostic(@NotNull Diagnostic diagnostic, @Nullable String platform, boolean withNewInference) {
             this.diagnostic = diagnostic;
             this.platform = platform;
-            this.withNewInference = withNewInference;
+            this.inferenceCompatibility = withNewInference ?
+                                          TextDiagnostic.InferenceCompatibility.NEW :
+                                          TextDiagnostic.InferenceCompatibility.OLD;
         }
 
         @NotNull
@@ -793,44 +824,62 @@ public class CheckerTestUtil {
             // '==' on diagnostics is intentional here
             return other.diagnostic == diagnostic &&
                    (other.platform == null ? platform == null : other.platform.equals(platform)) &&
-                   (other.withNewInference == withNewInference);
+                   (other.inferenceCompatibility == inferenceCompatibility);
         }
 
         @Override
         public int hashCode() {
             int result = System.identityHashCode(diagnostic);
             result = 31 * result + (platform != null ? platform.hashCode() : 0);
-            result = 31 * result + (withNewInference ? 0 : 1);
+            result = 31 * result + inferenceCompatibility.hashCode();
             return result;
         }
 
         @Override
         public String toString() {
-            return (withNewInference ? NEW_INFERENCE_PREFIX + ";" : "") + (platform != null ? platform + ":" : "") + diagnostic.toString();
+            String inferenceAbbreviation = inferenceCompatibility.abbreviation;
+            return (inferenceAbbreviation != null ? inferenceAbbreviation + ";" : "") +
+                   (platform != null ? platform + ":" : "") +
+                   diagnostic.toString();
         }
     }
 
     public static class TextDiagnostic {
+        public enum InferenceCompatibility {
+            ALL(null), OLD(OLD_INFERENCE_PREFIX), NEW(NEW_INFERENCE_PREFIX);
+
+            @Nullable String abbreviation;
+
+            InferenceCompatibility(@Nullable String abbreviation) {
+                this.abbreviation = abbreviation;
+            }
+        }
+
         @NotNull
         private static TextDiagnostic parseDiagnostic(String text) {
             Matcher matcher = INDIVIDUAL_DIAGNOSTIC_PATTERN.matcher(text);
             if (!matcher.find())
                 throw new IllegalArgumentException("Could not parse diagnostic: " + text);
 
-            boolean withNewInference = NEW_INFERENCE_PREFIX.equals(extractDataBefore(matcher.group(1), ";"));
+            InferenceCompatibility inference = computeInferenceCompatibility(extractDataBefore(matcher.group(1), ";"));
             String platform = extractDataBefore(matcher.group(2), ":");
 
             String name = matcher.group(3);
             String parameters = matcher.group(4);
             if (parameters == null) {
-                return new TextDiagnostic(name, platform, null, withNewInference);
+                return new TextDiagnostic(name, platform, null, inference);
             }
 
             List<String> parsedParameters = new SmartList<>();
             Matcher parametersMatcher = INDIVIDUAL_PARAMETER_PATTERN.matcher(parameters);
             while (parametersMatcher.find())
                 parsedParameters.add(unescape(parametersMatcher.group().trim()));
-            return new TextDiagnostic(name, platform, parsedParameters, withNewInference);
+            return new TextDiagnostic(name, platform, parsedParameters, inference);
+        }
+
+        private static InferenceCompatibility computeInferenceCompatibility(@Nullable String abbreviation) {
+            if (abbreviation == null) return InferenceCompatibility.ALL;
+            return ArraysKt.single(InferenceCompatibility.values(), inference -> abbreviation.equals(inference.abbreviation));
         }
 
         private static String extractDataBefore(@Nullable String prefix, @NotNull String anchor) {
@@ -856,9 +905,9 @@ public class CheckerTestUtil {
                 //noinspection unchecked
                 Object[] renderParameters = ((AbstractDiagnosticWithParametersRenderer) renderer).renderParameters(diagnostic);
                 List<String> parameters = ContainerUtil.map(renderParameters, Object::toString);
-                return new TextDiagnostic(diagnosticName, actualDiagnostic.platform, parameters, actualDiagnostic.withNewInference);
+                return new TextDiagnostic(diagnosticName, actualDiagnostic.platform, parameters, actualDiagnostic.inferenceCompatibility);
             }
-            return new TextDiagnostic(diagnosticName, actualDiagnostic.platform, null, actualDiagnostic.withNewInference);
+            return new TextDiagnostic(diagnosticName, actualDiagnostic.platform, null, actualDiagnostic.inferenceCompatibility);
         }
 
         @NotNull
@@ -867,13 +916,19 @@ public class CheckerTestUtil {
         private final String platform;
         @Nullable
         private final List<String> parameters;
-        private final boolean withNewInference;
+        @NotNull
+        private InferenceCompatibility inferenceCompatibility;
 
-        public TextDiagnostic(@NotNull String name, @Nullable String platform, @Nullable List<String> parameters, boolean withNewInference) {
+        public TextDiagnostic(
+                @NotNull String name,
+                @Nullable String platform,
+                @Nullable List<String> parameters,
+                @Nullable InferenceCompatibility inference
+        ) {
             this.name = name;
             this.platform = platform;
             this.parameters = parameters;
-            this.withNewInference = withNewInference;
+            this.inferenceCompatibility = inference != null ? inference : InferenceCompatibility.ALL;
         }
 
         @Nullable
@@ -891,6 +946,18 @@ public class CheckerTestUtil {
             return parameters;
         }
 
+        public boolean isWithNewInference() {
+            return inferenceCompatibility == InferenceCompatibility.NEW;
+        }
+
+        public boolean forAllInference() {
+            return inferenceCompatibility == InferenceCompatibility.ALL;
+        }
+
+        public void setInferenceCompatibility(@NotNull InferenceCompatibility newInferenceCompatibility) {
+            this.inferenceCompatibility = newInferenceCompatibility;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -901,7 +968,7 @@ public class CheckerTestUtil {
             if (!name.equals(that.name)) return false;
             if (platform != null ? !platform.equals(that.platform) : that.platform != null) return false;
             if (parameters != null ? !parameters.equals(that.parameters) : that.parameters != null) return false;
-            if (withNewInference != that.withNewInference) return false;
+            if (inferenceCompatibility != that.inferenceCompatibility) return false;
 
             return true;
         }
@@ -911,15 +978,15 @@ public class CheckerTestUtil {
             int result = name.hashCode();
             result = 31 * result + (platform != null ? platform.hashCode() : 0);
             result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
-            result = 31 * result + (withNewInference ? 0 : 1);
+            result = 31 * result + inferenceCompatibility.hashCode();
             return result;
         }
 
         @NotNull
         public String asString() {
             StringBuilder result = new StringBuilder();
-            if (withNewInference) {
-                result.append(NEW_INFERENCE_PREFIX);
+            if (inferenceCompatibility.abbreviation != null) {
+                result.append(inferenceCompatibility.abbreviation);
                 result.append(";");
             }
             if (platform != null) {
@@ -968,6 +1035,10 @@ public class CheckerTestUtil {
 
         public void addDiagnostic(String diagnostic) {
             diagnostics.add(TextDiagnostic.parseDiagnostic(diagnostic));
+        }
+
+        public void addDiagnostic(TextDiagnostic textDiagnostic) {
+            diagnostics.add(textDiagnostic);
         }
     }
 }
